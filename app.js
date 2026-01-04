@@ -205,7 +205,7 @@ function renderExperiments() {
         Machine: ${machineName}<br>
         Grind Setting: <span id="disp-g-${e.id}">${e.brew.grindSize}</span> | Dose: ${e.brew.dose}g | Yield: <span id="disp-y-${e.id}">${yieldDisplay}</span>g<br>
         Temp: ${e.brew.waterTemp}°C | Time: <span id="disp-t-${e.id}">${e.brew.brewTime}</span>s<br>
-        Behavior: ${e.behavior}<br>
+        Behavior: <span id="disp-b-${e.id}">${e.behavior}</span><br>
         Sensory: ${e.sensory}<br>
         Notes: ${e.notes || ""}
         <div style="margin-top: 10px;">
@@ -234,7 +234,7 @@ function renderExperiments() {
                     <div class="progress-bg" style="height: 4px;"><div id="bar-s-${e.id}" class="progress-fill" style="width: ${100 - score}%; background-color: ${sliderColor};"></div></div>
                 </div>
                 <div style="flex: 1;">
-                    <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Notes</div>
+                    <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Sour-to-Bitter</div>
                     <div class="progress-bg" style="height: 4px;"><div id="bar-n-${e.id}" class="progress-fill" style="width: ${score}%; background-color: ${sliderColor};"></div></div>
                 </div>
             </div>
@@ -381,6 +381,21 @@ experimentsDiv.addEventListener("input", (e) => {
     document.getElementById(`disp-g-${id}`).innerText = newG.toFixed(1);
     document.getElementById(`disp-t-${id}`).innerText = newT.toFixed(0);
     document.getElementById(`disp-y-${id}`).innerText = newY.toFixed(1);
+
+    // Update Behavior Display Data
+    let newBehavior = "Steady Flow";
+    if (newT <= 0) {
+        newBehavior = "N/A";
+    } else if (newT < 20) {
+        newBehavior = "Gushing";
+    } else if (newT < 25) {
+        newBehavior = "Fast Flow";
+    } else if (newT > 50) {
+        newBehavior = "Choking";
+    } else if (newT > 35) {
+        newBehavior = "Slow / Choking";
+    }
+    document.getElementById(`disp-b-${id}`).innerText = newBehavior;
     
     // Dynamic Color
     const lightness = 25 + (val * 0.6);
