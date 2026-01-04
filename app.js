@@ -70,6 +70,7 @@ onAuthStateChanged(auth, async (user) => {
       await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         approved: false,
+        admin: false,
         createdAt: serverTimestamp()
       });
       userDoc = await getDoc(doc(db, "users", user.uid));
@@ -168,7 +169,7 @@ function renderExperiments() {
     const machineName = machine ? machine.name : "Unknown Machine";
 
     // Check ownership
-    const isOwner = auth.currentUser && e.userId === auth.currentUser.uid;
+    const isOwner = (auth.currentUser && e.userId === auth.currentUser.uid) || isAdmin;
       const buttons = isOwner ? `
       <div style="margin-top: 10px; display: flex; gap: 5px;">
         <button class="edit-btn" data-id="${e.id}" style="background: #f0ad4e; font-size: 0.9em; padding: 8px;">Edit</button>
