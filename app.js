@@ -183,6 +183,10 @@ function renderExperiments() {
     else if (e.notes === "Grind Finer" || e.notes === "Grind Coarser") score = 60;
     else if (e.notes === "Adjust Dose" || e.notes === "Adjust Temp") score = 70;
 
+    // Dynamic Color Calculation (Dark to Light Brown)
+    const lightness = 25 + (score * 0.6);
+    const sliderColor = `hsl(25, 60%, ${lightness}%)`;
+
     // Check ownership
     const isOwner = (auth.currentUser && e.userId === auth.currentUser.uid) || isAdmin;
       const buttons = isOwner ? `
@@ -208,14 +212,32 @@ function renderExperiments() {
             <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #555; margin-bottom: 2px;">
                 <strong>Sweet Spot Simulator</strong> <span>(G:<span id="g-${e.id}">${e.brew.grindSize}</span> Y:<span id="y-${e.id}">${yieldDisplay}</span> T:<span id="t-${e.id}">${e.brew.brewTime}</span>s)</span>
             </div>
-            <input type="range" class="sweet-spot-slider" min="0" max="100" value="${score}" 
-                data-id="${e.id}" 
-                data-g="${e.brew.grindSize}" 
-                data-y="${e.brew.yield || 0}" 
-                data-t="${e.brew.brewTime}" 
-                data-note="${e.notes}"
-                style="width: 100%; cursor: pointer; accent-color: ${score === 100 ? '#4caf50' : '#ff9800'};"
-            >
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <button class="adjust-btn minus" style="width: 30px; padding: 5px; background: #ddd; color: #333; font-weight: bold;">-</button>
+                <input type="range" class="sweet-spot-slider" min="0" max="100" value="${score}" 
+                    data-id="${e.id}" 
+                    data-g="${e.brew.grindSize}" 
+                    data-y="${e.brew.yield || 0}" 
+                    data-t="${e.brew.brewTime}" 
+                    data-note="${e.notes}"
+                    style="flex-grow: 1; cursor: pointer; accent-color: ${sliderColor};"
+                >
+                <button class="adjust-btn plus" style="width: 30px; padding: 5px; background: #ddd; color: #333; font-weight: bold;">+</button>
+            </div>
+            <div style="display: flex; gap: 5px; margin-top: 8px;">
+                <div style="flex: 1;">
+                    <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Behavior</div>
+                    <div class="progress-bg" style="height: 4px;"><div id="bar-b-${e.id}" class="progress-fill" style="width: ${score}%; background-color: ${sliderColor};"></div></div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Sensory</div>
+                    <div class="progress-bg" style="height: 4px;"><div id="bar-s-${e.id}" class="progress-fill" style="width: ${score}%; background-color: ${sliderColor};"></div></div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Notes</div>
+                    <div class="progress-bg" style="height: 4px;"><div id="bar-n-${e.id}" class="progress-fill" style="width: ${score}%; background-color: ${sliderColor};"></div></div>
+                </div>
+            </div>
         </div>
         ${buttons}
       </div>
@@ -332,6 +354,7 @@ experimentsDiv.addEventListener("input", (e) => {
         // Needs Coarser: Dragging right (improving) -> Coarser (+G), Less Time (-T)
         newG = origG + (diff * 0.05);
         newT = origT - (diff * 0.2);
+        newY = origY - (diff * 0.05);
     } else if (note === "Adjust Dose") {
         // Simulate dose adjustment effect on flow (Time/Yield)
         newT = origT + (diff * 0.1);
@@ -345,15 +368,68 @@ experimentsDiv.addEventListener("input", (e) => {
         newY = origY + (diff * 0.05);
     }
 
+    // Prevent negative values
+    newG = Math.max(0, newG);
+    newT = Math.max(0, newT);
+    newY = Math.max(0, newY);
+
     // Update DOM
     document.getElementById(`g-${id}`).innerText = newG.toFixed(1);
     document.getElementById(`t-${id}`).innerText = newT.toFixed(0);
     document.getElementById(`y-${id}`).innerText = newY.toFixed(1);
     
     // Dynamic Color
-    slider.style.accentColor = val >= 90 ? '#4caf50' : '#ff9800';
+    const lightness = 25 + (val * 0.6);
+    const newColor = `hsl(25, 60%, ${lightness}%)`;
+    slider.style.accentColor = newColor;
+
+    // Update Sub-bars
+    const barB = document.getElementById(`bar-b-${id}`);
+    const barS = document.getElementById(`bar-s-${id}`);
+    const barN = document.getElementById(`bar-n-${id}`);
+    if (barB) { barB.style.width = `${val}%`; barB.style.backgroundColor = newColor; }
+    if (barS) { barS.style.width = `${val}%`; barS.style.backgroundColor = newColor; }
+    if (barN) { barN.style.width = `${val}%`; barN.style.backgroundColor = newColor; }
   }
 });
+
+// Handle Long Press for Adjust Buttons
+let pressTimer;
+let pressInterval;
+
+const handleAdjust = (btn) => {
+  const slider = btn.parentElement.querySelector(".sweet-spot-slider");
+  if (slider) {
+    let val = parseInt(slider.value);
+    if (btn.classList.contains("minus")) {
+      val = Math.max(0, val - 1);
+    } else {
+      val = Math.min(100, val + 1);
+    }
+    slider.value = val;
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+};
+
+const startPress = (e) => {
+  if (e.target.classList.contains("adjust-btn")) {
+    if (e.cancelable) e.preventDefault();
+    handleAdjust(e.target);
+    pressTimer = setTimeout(() => {
+      pressInterval = setInterval(() => handleAdjust(e.target), 100);
+    }, 500);
+  }
+};
+
+const endPress = () => {
+  clearTimeout(pressTimer);
+  clearInterval(pressInterval);
+};
+
+experimentsDiv.addEventListener("mousedown", startPress);
+experimentsDiv.addEventListener("touchstart", startPress, { passive: false });
+document.addEventListener("mouseup", endPress);
+document.addEventListener("touchend", endPress);
 
 function unsubscribeData() {
   if (unsubBeans) unsubBeans();
