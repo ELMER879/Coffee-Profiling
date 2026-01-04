@@ -231,7 +231,7 @@ function renderExperiments() {
                 </div>
                 <div style="flex: 1;">
                     <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Sensory</div>
-                    <div class="progress-bg" style="height: 4px;"><div id="bar-s-${e.id}" class="progress-fill" style="width: ${score}%; background-color: ${sliderColor};"></div></div>
+                    <div class="progress-bg" style="height: 4px;"><div id="bar-s-${e.id}" class="progress-fill" style="width: ${100 - score}%; background-color: ${sliderColor};"></div></div>
                 </div>
                 <div style="flex: 1;">
                     <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Notes</div>
@@ -388,7 +388,7 @@ experimentsDiv.addEventListener("input", (e) => {
     const barS = document.getElementById(`bar-s-${id}`);
     const barN = document.getElementById(`bar-n-${id}`);
     if (barB) { barB.style.width = `${val}%`; barB.style.backgroundColor = newColor; }
-    if (barS) { barS.style.width = `${val}%`; barS.style.backgroundColor = newColor; }
+    if (barS) { barS.style.width = `${100 - val}%`; barS.style.backgroundColor = newColor; }
     if (barN) { barN.style.width = `${val}%`; barN.style.backgroundColor = newColor; }
   }
 });
