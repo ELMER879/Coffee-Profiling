@@ -19,6 +19,7 @@ import {
 import { db, auth } from "./firebase.js";
 
 const beanSelect = document.getElementById("beanSelect");
+const machineSelect = document.getElementById("machineSelect");
 const experimentsDiv = document.getElementById("experiments");
 const authContainer = document.getElementById("auth-container");
 const pendingContainer = document.getElementById("pending-container");
@@ -63,6 +64,7 @@ onAuthStateChanged(auth, async (user) => {
     // Check if user is approved
     let userDoc = await getDoc(doc(db, "users", user.uid));
     
+
     // Fix: If Auth user exists but Firestore doc is missing, create it now
     if (!userDoc.exists()) {
       await setDoc(doc(db, "users", user.uid), {
@@ -72,6 +74,8 @@ onAuthStateChanged(auth, async (user) => {
       });
       userDoc = await getDoc(doc(db, "users", user.uid));
     }
+
+    isAdmin = userDoc.data().admin === true;
 
     if (userDoc.exists() && userDoc.data().approved) {
       authContainer.style.display = "none";
@@ -96,6 +100,7 @@ onAuthStateChanged(auth, async (user) => {
 // TOGGLE SECTIONS
 const sections = [
   { btnId: "toggleBeanBtn", sectionId: "addBeanSection" },
+  { btnId: "toggleMachineBtn", sectionId: "addMachineSection" },
   { btnId: "toggleExperimentBtn", sectionId: "logExperimentSection" },
   { btnId: "toggleExperimentsBtn", sectionId: "experiments" }
 ];
@@ -136,51 +141,95 @@ document.getElementById("addBeanBtn").onclick = async () => {
   document.getElementById("roastDate").value = "";
 };
 
-let unsubBeans, unsubExperiments;
+// ADD MACHINE
+document.getElementById("addMachineBtn").onclick = async () => {
+  await addDoc(collection(db, "machines"), {
+    name: document.getElementById("machineName").value,
+    createdAt: serverTimestamp()
+  });
+
+  document.getElementById("machineName").value = "";
+};
+
+let unsubBeans, unsubMachines, unsubExperiments;
+let beans = [];
+let machines = [];
+let experiments = [];
+
+function renderExperiments() {
+  experimentsDiv.innerHTML = "";
+
+  experiments.forEach(e => {
+
+      const bean = beans.find(b => b.id === e.beanId);
+    const beanName = bean ? `${bean.name} (${bean.roastLevel})` : "Unknown Bean";
+    
+    const machine = machines.find(m => m.id === e.machineId);
+    const machineName = machine ? machine.name : "Unknown Machine";
+
+    // Check ownership
+    const isOwner = auth.currentUser && e.userId === auth.currentUser.uid;
+      const buttons = isOwner ? `
+      <div style="margin-top: 10px; display: flex; gap: 5px;">
+        <button class="edit-btn" data-id="${e.id}" style="background: #f0ad4e; font-size: 0.9em; padding: 8px;">Edit</button>
+        <button class="delete-btn" data-id="${e.id}" style="background: #d9534f; font-size: 0.9em; padding: 8px;">Delete</button>
+      </div>
+    ` : "";
+
+    experimentsDiv.innerHTML += `
+      <div class="card">
+        <strong>${e.brew.method}</strong><br>
+        Bean: ${beanName}<br>
+        Machine: ${machineName}<br>
+        Grind: ${e.brew.grindSize} | Dose: ${e.brew.dose}g<br>
+        Temp: ${e.brew.waterTemp}°C | Time: ${e.brew.brewTime}s<br>
+        Behavior: ${e.behavior}<br>
+        Sensory: ${e.sensory}<br>
+        Notes: ${e.notes || ""}
+        ${buttons}
+      </div>
+    `;
+  });
+}
 
 function subscribeData() {
   // LOAD BEANS
   unsubBeans = onSnapshot(collection(db, "beans"), (snapshot) => {
+    beans = [];
     beanSelect.innerHTML = '<option value="">Select Bean</option>';
 
     snapshot.forEach(doc => {
       const bean = doc.data();
+      beans.push({ id: doc.id, ...bean });
       beanSelect.innerHTML += `
         <option value="${doc.id}">
           ${bean.name} (${bean.roastLevel})
         </option>
       `;
     });
+    renderExperiments();
+  });
+
+  // LOAD MACHINES
+  unsubMachines = onSnapshot(collection(db, "machines"), (snapshot) => {
+    machines = [];
+    machineSelect.innerHTML = '<option value="">Select Machine</option>';
+
+    snapshot.forEach(doc => {
+      const machine = doc.data();
+      machines.push({ id: doc.id, ...machine });
+      machineSelect.innerHTML += `<option value="${doc.id}">${machine.name}</option>`;
+    });
+    renderExperiments();
   });
 
   // LOAD EXPERIMENTS
   unsubExperiments = onSnapshot(collection(db, "experiments"), (snapshot) => {
-    experimentsDiv.innerHTML = "";
-
+    experiments = [];
     snapshot.forEach(doc => {
-      const e = doc.data();
-      
-      // Check ownership
-      const isOwner = auth.currentUser && e.userId === auth.currentUser.uid;
-      const buttons = isOwner ? `
-        <div style="margin-top: 10px; display: flex; gap: 5px;">
-          <button class="edit-btn" data-id="${doc.id}" style="background: #f0ad4e; font-size: 0.9em; padding: 8px;">Edit</button>
-          <button class="delete-btn" data-id="${doc.id}" style="background: #d9534f; font-size: 0.9em; padding: 8px;">Delete</button>
-        </div>
-      ` : "";
-
-      experimentsDiv.innerHTML += `
-        <div class="card">
-          <strong>${e.brew.method}</strong><br>
-          Grind: ${e.brew.grindSize} | Dose: ${e.brew.dose}g<br>
-          Temp: ${e.brew.waterTemp}°C | Time: ${e.brew.brewTime}s<br>
-          Behavior: ${e.behavior}<br>
-          Sensory: ${e.sensory}<br>
-          Notes: ${e.notes || ""}
-          ${buttons}
-        </div>
-      `;
+      experiments.push({ id: doc.id, ...doc.data() });
     });
+    renderExperiments();
   });
 }
 
@@ -201,6 +250,7 @@ experimentsDiv.addEventListener("click", async (e) => {
 
     // Fill form
     beanSelect.value = data.beanId;
+    if (data.machineId) machineSelect.value = data.machineId;
     document.getElementById("method").value = data.brew.method;
     document.getElementById("grindSize").value = data.brew.grindSize;
     document.getElementById("dose").value = data.brew.dose;
@@ -222,8 +272,11 @@ experimentsDiv.addEventListener("click", async (e) => {
 
 function unsubscribeData() {
   if (unsubBeans) unsubBeans();
+  if (unsubMachines) unsubMachines();
   if (unsubExperiments) unsubExperiments();
 }
+
+let isAdmin = false;
 
 // SAVE EXPERIMENT
 let editingId = null;
@@ -236,6 +289,7 @@ document.getElementById("saveExperimentBtn").onclick = async () => {
 
   const experimentData = {
     beanId: beanSelect.value,
+    machineId: machineSelect.value,
     brew: {
       method: document.getElementById("method").value,
       grindSize: document.getElementById("grindSize").value,

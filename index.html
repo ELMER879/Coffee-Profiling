@@ -51,6 +51,7 @@
     <div id="app-content" style="display: none;">
         <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
             <button id="toggleBeanBtn">Toggle Add Bean</button>
+            <button id="toggleMachineBtn">Toggle Add Machine</button>
             <button id="toggleExperimentBtn">Toggle Log Experiment</button>
             <button id="toggleExperimentsBtn">Toggle Saved Experiments</button>
             <button id="logoutBtn" style="background: #d32f2f;">Logout</button>
@@ -67,10 +68,19 @@
         <button id="addBeanBtn">Add Bean</button>
     </div>
 
+    <div class="input-group" id="addMachineSection" style="display: none;">
+        <h2>Add Machine</h2>
+        <input type="text" id="machineName" placeholder="Machine Name">
+        <button id="addMachineBtn">Add Machine</button>
+    </div>
+
     <div class="input-group" id="logExperimentSection" style="display: none;">
         <h2>Log Experiment</h2>
         <select id="beanSelect">
             <option value="">Select Bean</option>
+        </select>
+        <select id="machineSelect">
+            <option value="">Select Machine</option>
         </select>
         <input type="text" id="method" placeholder="Brew Method">
         <input type="text" id="grindSize" placeholder="Grind Size">
