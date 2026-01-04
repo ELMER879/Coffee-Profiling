@@ -168,6 +168,21 @@ function renderExperiments() {
     const machine = machines.find(m => m.id === e.machineId);
     const machineName = machine ? machine.name : "Unknown Machine";
 
+    // Determine card color based on flavor profile
+    let cardColor = "var(--card-bg)";
+    const profile = e.flavorProfile || "";
+    if (profile === "fruity") cardColor = "#fff0f0"; // Pinkish
+    else if (profile === "acidic") cardColor = "#f9fbe7"; // Yellowish
+    else if (profile === "nutty") cardColor = "#fff8e1"; // Amber
+    else if (profile === "roasty") cardColor = "#eceff1"; // Greyish
+    else if (profile === "herbal") cardColor = "#e8f5e9"; // Greenish
+
+    // Calculate Sweet Spot Score based on Outcome
+    let score = 50; // Default
+    if (e.notes === "Dialed In") score = 100;
+    else if (e.notes === "Grind Finer" || e.notes === "Grind Coarser") score = 60;
+    else if (e.notes === "Adjust Dose" || e.notes === "Adjust Temp") score = 70;
+
     // Check ownership
     const isOwner = (auth.currentUser && e.userId === auth.currentUser.uid) || isAdmin;
       const buttons = isOwner ? `
@@ -177,16 +192,31 @@ function renderExperiments() {
       </div>
     ` : "";
 
+    const yieldDisplay = (e.brew.yield !== undefined && e.brew.yield !== null) ? e.brew.yield : '-';
+
     experimentsDiv.innerHTML += `
-      <div class="card">
+      <div class="card" style="background-color: ${cardColor};">
         <strong>${e.brew.method}</strong><br>
         Bean: ${beanName}<br>
         Machine: ${machineName}<br>
-        Grind: ${e.brew.grindSize} | Dose: ${e.brew.dose}g<br>
+        Grind: ${e.brew.grindSize} | Dose: ${e.brew.dose}g | Yield: ${yieldDisplay}g<br>
         Temp: ${e.brew.waterTemp}°C | Time: ${e.brew.brewTime}s<br>
         Behavior: ${e.behavior}<br>
         Sensory: ${e.sensory}<br>
         Notes: ${e.notes || ""}
+        <div style="margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #555; margin-bottom: 2px;">
+                <strong>Sweet Spot Simulator</strong> <span>(G:<span id="g-${e.id}">${e.brew.grindSize}</span> Y:<span id="y-${e.id}">${yieldDisplay}</span> T:<span id="t-${e.id}">${e.brew.brewTime}</span>s)</span>
+            </div>
+            <input type="range" class="sweet-spot-slider" min="0" max="100" value="${score}" 
+                data-id="${e.id}" 
+                data-g="${e.brew.grindSize}" 
+                data-y="${e.brew.yield || 0}" 
+                data-t="${e.brew.brewTime}" 
+                data-note="${e.notes}"
+                style="width: 100%; cursor: pointer; accent-color: ${score === 100 ? '#4caf50' : '#ff9800'};"
+            >
+        </div>
         ${buttons}
       </div>
     `;
@@ -255,6 +285,7 @@ experimentsDiv.addEventListener("click", async (e) => {
     document.getElementById("method").value = data.brew.method;
     document.getElementById("grindSize").value = data.brew.grindSize;
     document.getElementById("dose").value = data.brew.dose;
+    document.getElementById("yield").value = data.brew.yield || "";
     document.getElementById("temp").value = data.brew.waterTemp;
     document.getElementById("time").value = data.brew.brewTime;
     document.getElementById("behavior").value = data.behavior;
@@ -268,6 +299,59 @@ experimentsDiv.addEventListener("click", async (e) => {
     // Show form
     document.getElementById("logExperimentSection").style.display = "block";
     document.getElementById("logExperimentSection").scrollIntoView({ behavior: "smooth" });
+  }
+});
+
+// Handle Sweet Spot Simulation (Drag to adjust)
+experimentsDiv.addEventListener("input", (e) => {
+  if (e.target.classList.contains("sweet-spot-slider")) {
+    const slider = e.target;
+    const id = slider.dataset.id;
+    const val = parseInt(slider.value);
+    
+    // Original values
+    const origG = parseFloat(slider.dataset.g) || 0;
+    const origY = parseFloat(slider.dataset.y) || 0;
+    const origT = parseFloat(slider.dataset.t) || 0;
+    const note = slider.dataset.note || "";
+
+    // Calculate Baseline Score
+    let baseScore = 50;
+    if (note === "Dialed In") baseScore = 100;
+    else if (note === "Grind Finer" || note === "Grind Coarser") baseScore = 60;
+    else if (note === "Adjust Dose" || note === "Adjust Temp") baseScore = 70;
+
+    const diff = val - baseScore;
+
+    // Simulation Logic
+    let newG = origG;
+    let newT = origT;
+    let newY = origY; // Yield typically stays constant, but we can adjust if needed
+
+    if (note === "Grind Coarser") {
+        // Needs Coarser: Dragging right (improving) -> Coarser (+G), Less Time (-T)
+        newG = origG + (diff * 0.05);
+        newT = origT - (diff * 0.2);
+    } else if (note === "Adjust Dose") {
+        // Simulate dose adjustment effect on flow (Time/Yield)
+        newT = origT + (diff * 0.1);
+        newY = origY + (diff * 0.1);
+    } else {
+        // Default / "Grind Finer" / "Dialed In"
+        // Needs Finer: Dragging right (improving) -> Finer (-G), More Time (+T)
+        // We also adjust Yield slightly to show responsiveness
+        newG = origG - (diff * 0.05); 
+        newT = origT + (diff * 0.2);
+        newY = origY + (diff * 0.05);
+    }
+
+    // Update DOM
+    document.getElementById(`g-${id}`).innerText = newG.toFixed(1);
+    document.getElementById(`t-${id}`).innerText = newT.toFixed(0);
+    document.getElementById(`y-${id}`).innerText = newY.toFixed(1);
+    
+    // Dynamic Color
+    slider.style.accentColor = val >= 90 ? '#4caf50' : '#ff9800';
   }
 });
 
@@ -291,10 +375,12 @@ document.getElementById("saveExperimentBtn").onclick = async () => {
   const experimentData = {
     beanId: beanSelect.value,
     machineId: machineSelect.value,
+    flavorProfile: document.getElementById("flavorProfile").value,
     brew: {
       method: document.getElementById("method").value,
       grindSize: document.getElementById("grindSize").value,
       dose: Number(document.getElementById("dose").value),
+      yield: Number(document.getElementById("yield").value),
       waterTemp: Number(document.getElementById("temp").value),
       brewTime: Number(document.getElementById("time").value)
     },
@@ -318,9 +404,11 @@ document.getElementById("saveExperimentBtn").onclick = async () => {
   document.getElementById("method").value = "";
   document.getElementById("grindSize").value = "";
   document.getElementById("dose").value = "";
+  document.getElementById("yield").value = "";
   document.getElementById("temp").value = "";
   document.getElementById("time").value = "";
   document.getElementById("behavior").value = "";
   document.getElementById("sensory").value = "";
   document.getElementById("notes").value = "";
+  document.getElementById("flavorProfile").value = "";
 };

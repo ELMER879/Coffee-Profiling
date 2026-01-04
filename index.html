@@ -20,6 +20,8 @@
         button { background: linear-gradient(135deg, #3e2723, #8d6e63); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 6px; width: 100%; font-weight: bold; transition: opacity 0.2s; }
         button:hover { opacity: 0.9; }
         .card { background: var(--card-bg); padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .progress-bg { background: rgba(0,0,0,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; transition: width 0.3s ease; }
     </style>
 </head>
 <body>
@@ -82,14 +84,58 @@
         <select id="machineSelect">
             <option value="">Select Machine</option>
         </select>
-        <input type="text" id="method" placeholder="Brew Method">
-        <input type="text" id="grindSize" placeholder="Grind Size">
+        <select id="flavorProfile">
+            <option value="">Select Flavor Profile</option>
+            <option value="fruity">Fruity / Floral (Pink)</option>
+            <option value="acidic">Acidic / Citrus (Yellow)</option>
+            <option value="nutty">Nutty / Chocolate (Amber)</option>
+            <option value="roasty">Roasty / Bitter (Grey)</option>
+            <option value="herbal">Herbal / Vegetal (Green)</option>
+        </select>
+        <select id="method">
+            <option value="">Select Brew Method</option>
+            <option value="Espresso">Espresso</option>
+            <option value="Pour Over">Pour Over</option>
+            <option value="French Press">French Press</option>
+            <option value="Aeropress">Aeropress</option>
+            <option value="Moka Pot">Moka Pot</option>
+            <option value="Cold Brew">Cold Brew</option>
+            <option value="Chemex">Chemex</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="number" id="grindSize" placeholder="Grind Setting">
         <input type="number" id="dose" placeholder="Dose (g)">
+        <input type="number" id="yield" placeholder="Yield (g)">
         <input type="number" id="temp" placeholder="Water Temp (°C)">
         <input type="number" id="time" placeholder="Brew Time (s)">
-        <textarea id="behavior" placeholder="Behavior"></textarea>
-        <textarea id="sensory" placeholder="Sensory Notes"></textarea>
-        <textarea id="notes" placeholder="Notes"></textarea>
+        <select id="behavior">
+            <option value="">Select Behavior</option>
+            <option value="Steady">Steady Flow</option>
+            <option value="Fast">Fast Flow</option>
+            <option value="Slow">Slow / Dripping</option>
+            <option value="Channeling">Channeling</option>
+            <option value="Choking">Choking</option>
+        </select>
+        <select id="sensory">
+            <option value="">Select Sensory Note</option>
+            <option value="Chocolate">Chocolate</option>
+            <option value="Nutty">Nutty</option>
+            <option value="Caramel">Caramel</option>
+            <option value="Fruity">Fruity</option>
+            <option value="Berry">Berry</option>
+            <option value="Citrus">Citrus</option>
+            <option value="Floral">Floral</option>
+            <option value="Spicy">Spicy</option>
+            <option value="Earthy">Earthy</option>
+        </select>
+        <select id="notes">
+            <option value="">Select Outcome</option>
+            <option value="Dialed In">Dialed In (Perfect)</option>
+            <option value="Grind Finer">Needs Finer Grind</option>
+            <option value="Grind Coarser">Needs Coarser Grind</option>
+            <option value="Adjust Dose">Adjust Dose</option>
+            <option value="Adjust Temp">Adjust Temp</option>
+        </select>
         <button id="saveExperimentBtn">Save Experiment</button>
     </div>
 
