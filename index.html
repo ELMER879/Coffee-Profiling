@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Profiling</title>
+    <style>
+        :root {
+            --primary: #6f4e37;
+            --primary-hover: #5d4037;
+            --bg: #f4f1ea;
+            --card-bg: #ffffff;
+            --text: #3e2723;
+        }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: var(--bg); color: var(--text); }
+        h1, h2 { color: var(--primary); }
+        .input-group { background: var(--card-bg); margin-bottom: 20px; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        input, select, textarea { width: 100%; margin-bottom: 12px; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
+        input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        button { background: linear-gradient(135deg, #3e2723, #8d6e63); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 6px; width: 100%; font-weight: bold; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        .card { background: var(--card-bg); padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    <h1>Coffee Profiling</h1>
+
+    <!-- AUTH SECTION -->
+    <div id="auth-container" style="max-width: 400px; margin: 50px auto;">
+        <div class="card">
+            <h2 id="auth-title">Login</h2>
+            <input type="email" id="auth-email" placeholder="Email">
+            <input type="password" id="auth-password" placeholder="Password">
+            <button id="auth-action-btn">Login</button>
+            <p style="text-align: center; margin-top: 15px;">
+                <a href="#" id="auth-toggle-link" style="color: var(--primary);">Need an account? Sign Up</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- PENDING APPROVAL SECTION -->
+    <div id="pending-container" style="display: none; max-width: 400px; margin: 50px auto;">
+        <div class="card">
+            <h2>Account Pending</h2>
+            <p>Your account is waiting for administrator approval.</p>
+            <button id="pendingLogoutBtn" style="background: #d32f2f; margin-top: 10px;">Logout</button>
+        </div>
+    </div>
+
+    <!-- APP CONTENT (Hidden by default) -->
+    <div id="app-content" style="display: none;">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button id="toggleBeanBtn">Toggle Add Bean</button>
+            <button id="toggleExperimentBtn">Toggle Log Experiment</button>
+            <button id="toggleExperimentsBtn">Toggle Saved Experiments</button>
+            <button id="logoutBtn" style="background: #d32f2f;">Logout</button>
+        </div>
+
+        <div class="input-group" id="addBeanSection" style="display: none;">
+        <h2>Add Bean</h2>
+        <input type="text" id="beanName" placeholder="Bean Name">
+        <input type="text" id="origin" placeholder="Origin">
+        <input type="text" id="variety" placeholder="Variety">
+        <input type="text" id="process" placeholder="Process">
+        <input type="text" id="roastLevel" placeholder="Roast Level">
+        <input type="date" id="roastDate">
+        <button id="addBeanBtn">Add Bean</button>
+    </div>
+
+    <div class="input-group" id="logExperimentSection" style="display: none;">
+        <h2>Log Experiment</h2>
+        <select id="beanSelect">
+            <option value="">Select Bean</option>
+        </select>
+        <input type="text" id="method" placeholder="Brew Method">
+        <input type="text" id="grindSize" placeholder="Grind Size">
+        <input type="number" id="dose" placeholder="Dose (g)">
+        <input type="number" id="temp" placeholder="Water Temp (°C)">
+        <input type="number" id="time" placeholder="Brew Time (s)">
+        <textarea id="behavior" placeholder="Behavior"></textarea>
+        <textarea id="sensory" placeholder="Sensory Notes"></textarea>
+        <textarea id="notes" placeholder="Notes"></textarea>
+        <button id="saveExperimentBtn">Save Experiment</button>
+    </div>
+
+        <div id="experiments" style="display: none;">
+            <!-- Experiments will load here -->
+        </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
