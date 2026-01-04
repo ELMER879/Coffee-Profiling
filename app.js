@@ -225,11 +225,11 @@ function renderExperiments() {
             <div style="display: flex; gap: 5px; margin-top: 8px;">
                 <div style="flex: 1;">
                     <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Behavior</div>
-                    <div class="progress-bg" style="height: 4px;"><div id="bar-b-${e.id}" class="progress-fill" style="width: ${score}%; background-color: ${sliderColor};"></div></div>
+                    <div class="progress-bg" style="height: 4px;"><div id="bar-b-${e.id}" class="progress-fill" style="width: ${100 - score}%; background-color: ${sliderColor};"></div></div>
                 </div>
                 <div style="flex: 1;">
                     <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Sensory</div>
-                    <div class="progress-bg" style="height: 4px;"><div id="bar-s-${e.id}" class="progress-fill" style="width: ${100 - score}%; background-color: ${sliderColor};"></div></div>
+                    <div class="progress-bg" style="height: 4px;"><div id="bar-s-${e.id}" class="progress-fill" style="width: ${75 - (score * 0.5)}%; background-color: ${sliderColor};"></div></div>
                 </div>
                 <div style="flex: 1;">
                     <div style="font-size: 0.7em; color: #666; margin-bottom: 2px;">Sour-to-Bitter</div>
@@ -379,23 +379,46 @@ experimentsDiv.addEventListener("input", (e) => {
 
     // Update Behavior Display Data
     let newBehavior;
+
     if (newT <= 0) {
         newBehavior = "Not Dripping";
-    } else if (newT < 20) {
-        newBehavior = "Very fast";
-    } else if (newT < 25) {
-        newBehavior = "Medium Fast";
-    } else if (newT <= 35) {
-        newBehavior = "Steady Flow (Ideal)";
-    } else if (newT <= 45) {
-        newBehavior = "Slow Drip";
-    } else { // > 45
+    } else if (newG <= -9.5) {
+        newBehavior = "Not Dripping";
+    } else if (newG <= -8.25) {
         newBehavior = "Restricted";
+    } else {
+        const grindThreshold = -4; // Adjust this based on what you consider a "fine" or "coarse" grind
+
+        if (newG < grindThreshold) {  // Finer grind
+            if (newT > 50) {
+                newBehavior = "Not Dripping";
+            } else if (newT > 35) {
+                newBehavior = "Restricted";
+            } else if (newT > 20) {
+                newBehavior = "Steady Flow (Ideal)";
+            } else {
+                newBehavior = "Medium Fast";
+            }
+
+        } else {  // Coarser grind
+            if (newT < 20) {
+                newBehavior = "Very fast";
+            } else if (newT < 30) {
+                newBehavior = "Medium Fast"; // Okay, but could be better
+            } else if (newT < 40) {
+                  newBehavior = "Steady Flow (Ideal)"; //best state
+            }
+
+            else {
+                newBehavior = "Restricted"; //very slow
+             }
+
+        }
     }
     document.getElementById(`disp-b-${id}`).innerText = newBehavior;
     
     // Dynamic Color
-    const lightness = 25 + (val * 0.6);
+      const lightness = 25 + (val * 0.6);
     const newColor = `hsl(25, 60%, ${lightness}%)`;
     slider.style.accentColor = newColor;
 
@@ -403,8 +426,8 @@ experimentsDiv.addEventListener("input", (e) => {
     const barB = document.getElementById(`bar-b-${id}`);
     const barS = document.getElementById(`bar-s-${id}`);
     const barN = document.getElementById(`bar-n-${id}`);
-    if (barB) { barB.style.width = `${val}%`; barB.style.backgroundColor = newColor; }
-    if (barS) { barS.style.width = `${100 - val}%`; barS.style.backgroundColor = newColor; }
+    if (barB) { barB.style.width = `${100 - val}%`; barB.style.backgroundColor = newColor; }
+    if (barS) { barS.style.width = `${75 - (val * 0.5)}%`; barS.style.backgroundColor = newColor; }
     if (barN) { barN.style.width = `${val}%`; barN.style.backgroundColor = newColor; }
   }
 });
