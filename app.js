@@ -179,9 +179,6 @@ function renderExperiments() {
 
     // Calculate Sweet Spot Score based on Outcome
     let score = 50; // Default
-    if (e.notes === "Dialed In") score = 100;
-    else if (e.notes === "Grind Finer" || e.notes === "Grind Coarser") score = 60;
-    else if (e.notes === "Adjust Dose" || e.notes === "Adjust Temp") score = 70;
 
     // Dynamic Color Calculation (Dark to Light Brown)
     const lightness = 25 + (score * 0.6);
@@ -206,8 +203,8 @@ function renderExperiments() {
         Grind Setting: <span id="disp-g-${e.id}">${e.brew.grindSize}</span> | Dose: ${e.brew.dose}g | Yield: <span id="disp-y-${e.id}">${yieldDisplay}</span>g<br>
         Temp: ${e.brew.waterTemp}°C | Time: <span id="disp-t-${e.id}">${e.brew.brewTime}</span>s<br>
         Behavior: <span id="disp-b-${e.id}">${e.behavior}</span><br>
-        Sensory: ${e.sensory}<br>
-        Notes: ${e.notes || ""}
+        Sensory Notes: ${e.sensory}<br>
+        Outcome: ${e.notes || ""}
         <div style="margin-top: 10px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #555; margin-bottom: 2px;">
                 <strong>Sweet Spot Simulator</strong> <span>(Grind:<span id="g-${e.id}">${e.brew.grindSize}</span> Y:<span id="y-${e.id}">${yieldDisplay}</span> T:<span id="t-${e.id}">${e.brew.brewTime}</span>s)</span>
@@ -339,9 +336,6 @@ experimentsDiv.addEventListener("input", (e) => {
 
     // Calculate Baseline Score
     let baseScore = 50;
-    if (note === "Dialed In") baseScore = 100;
-    else if (note === "Grind Finer" || note === "Grind Coarser") baseScore = 60;
-    else if (note === "Adjust Dose" || note === "Adjust Temp") baseScore = 70;
 
     const diff = val - baseScore;
 
