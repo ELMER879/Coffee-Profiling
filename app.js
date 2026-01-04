@@ -203,14 +203,14 @@ function renderExperiments() {
         <strong>${e.brew.method}</strong><br>
         Bean: ${beanName}<br>
         Machine: ${machineName}<br>
-        Grind: <span id="disp-g-${e.id}">${e.brew.grindSize}</span> | Dose: ${e.brew.dose}g | Yield: <span id="disp-y-${e.id}">${yieldDisplay}</span>g<br>
+        Grind Setting: <span id="disp-g-${e.id}">${e.brew.grindSize}</span> | Dose: ${e.brew.dose}g | Yield: <span id="disp-y-${e.id}">${yieldDisplay}</span>g<br>
         Temp: ${e.brew.waterTemp}°C | Time: <span id="disp-t-${e.id}">${e.brew.brewTime}</span>s<br>
         Behavior: ${e.behavior}<br>
         Sensory: ${e.sensory}<br>
         Notes: ${e.notes || ""}
         <div style="margin-top: 10px;">
             <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #555; margin-bottom: 2px;">
-                <strong>Sweet Spot Simulator</strong> <span>(G:<span id="g-${e.id}">${e.brew.grindSize}</span> Y:<span id="y-${e.id}">${yieldDisplay}</span> T:<span id="t-${e.id}">${e.brew.brewTime}</span>s)</span>
+                <strong>Sweet Spot Simulator</strong> <span>(Grind:<span id="g-${e.id}">${e.brew.grindSize}</span> Y:<span id="y-${e.id}">${yieldDisplay}</span> T:<span id="t-${e.id}">${e.brew.brewTime}</span>s)</span>
             </div>
             <div style="display: flex; align-items: center; gap: 5px;">
                 <button class="adjust-btn minus" style="width: 30px; padding: 5px; background: #ddd; color: #333; font-weight: bold;">-</button>
@@ -369,7 +369,6 @@ experimentsDiv.addEventListener("input", (e) => {
     }
 
     // Prevent negative values
-    newG = Math.max(0, newG);
     newT = Math.max(0, newT);
     newY = Math.max(0, newY);
 
