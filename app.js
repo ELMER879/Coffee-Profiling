@@ -203,6 +203,7 @@ function renderExperiments() {
         Grind Setting: <span id="disp-g-${e.id}">${e.brew.grindSize}</span> | Dose: ${e.brew.dose}g | Yield: <span id="disp-y-${e.id}">${yieldDisplay}</span>g<br>
         Temp: ${e.brew.waterTemp}°C | Time: <span id="disp-t-${e.id}">${e.brew.brewTime}</span>s<br>
         Behavior: <span id="disp-b-${e.id}">${e.behavior}</span><br>
+        Flavor Profile: ${e.flavorProfile || "N/A"}<br>
         Sensory Notes: ${e.sensory}<br>
         Outcome: ${e.notes || ""}
         <div style="margin-top: 10px;">
@@ -377,17 +378,19 @@ experimentsDiv.addEventListener("input", (e) => {
     document.getElementById(`disp-y-${id}`).innerText = newY.toFixed(1);
 
     // Update Behavior Display Data
-    let newBehavior = "Steady Flow";
+    let newBehavior;
     if (newT <= 0) {
-        newBehavior = "N/A";
+        newBehavior = "Not Dripping";
     } else if (newT < 20) {
-        newBehavior = "Gushing";
+        newBehavior = "Very fast";
     } else if (newT < 25) {
-        newBehavior = "Fast Flow";
-    } else if (newT > 50) {
-        newBehavior = "Choking";
-    } else if (newT > 35) {
-        newBehavior = "Slow / Choking";
+        newBehavior = "Medium Fast";
+    } else if (newT <= 35) {
+        newBehavior = "Steady Flow (Ideal)";
+    } else if (newT <= 45) {
+        newBehavior = "Slow Drip";
+    } else { // > 45
+        newBehavior = "Restricted";
     }
     document.getElementById(`disp-b-${id}`).innerText = newBehavior;
     
