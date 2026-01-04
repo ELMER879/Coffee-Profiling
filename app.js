@@ -203,8 +203,8 @@ function renderExperiments() {
         <strong>${e.brew.method}</strong><br>
         Bean: ${beanName}<br>
         Machine: ${machineName}<br>
-        Grind: ${e.brew.grindSize} | Dose: ${e.brew.dose}g | Yield: ${yieldDisplay}g<br>
-        Temp: ${e.brew.waterTemp}°C | Time: ${e.brew.brewTime}s<br>
+        Grind: <span id="disp-g-${e.id}">${e.brew.grindSize}</span> | Dose: ${e.brew.dose}g | Yield: <span id="disp-y-${e.id}">${yieldDisplay}</span>g<br>
+        Temp: ${e.brew.waterTemp}°C | Time: <span id="disp-t-${e.id}">${e.brew.brewTime}</span>s<br>
         Behavior: ${e.behavior}<br>
         Sensory: ${e.sensory}<br>
         Notes: ${e.notes || ""}
@@ -377,6 +377,11 @@ experimentsDiv.addEventListener("input", (e) => {
     document.getElementById(`g-${id}`).innerText = newG.toFixed(1);
     document.getElementById(`t-${id}`).innerText = newT.toFixed(0);
     document.getElementById(`y-${id}`).innerText = newY.toFixed(1);
+
+    // Update Main Display Data
+    document.getElementById(`disp-g-${id}`).innerText = newG.toFixed(1);
+    document.getElementById(`disp-t-${id}`).innerText = newT.toFixed(0);
+    document.getElementById(`disp-y-${id}`).innerText = newY.toFixed(1);
     
     // Dynamic Color
     const lightness = 25 + (val * 0.6);
